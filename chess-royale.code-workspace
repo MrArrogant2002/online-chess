@@ -1,0 +1,38 @@
+{
+  "folders": [
+    {
+      "name": "Frontend",
+      "path": "./frontend"
+    },
+    {
+      "name": "Backend", 
+      "path": "./backend"
+    }
+  ],
+  "settings": {
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+    "typescript.suggest.autoImports": true,
+    "typescript.workspaceSymbols.scope": "currentProject",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "typescript.tsc.autoDetect": "on",
+    "typescript.validate.enable": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "typescript.preferences.useAliasesForRenames": false,
+    "typescript.inlayHints.parameterNames.enabled": "all",
+    "search.exclude": {
+      "**/node_modules": false
+    },
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/.git/objects/**": true,
+      "**/.git/subtree-cache/**": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-typescript-next",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss"
+    ]
+  }
+}
