@@ -143,12 +143,13 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
           <div
             key={`${actualRow}-${actualCol}`}
             className={`
-              relative aspect-square border border-[#29104A]/20
-              ${isLight ? 'bg-[#FFE3D8]' : 'bg-[#845162]'}
-              ${isSelected ? 'ring-4 ring-[#E38681] ring-opacity-70' : ''}
-              ${isLastMoveSquare ? 'bg-[#E38681]/30' : ''}
+              relative aspect-square
+              ${isLight ? 'bg-[#FFE3D8]' : 'bg-[#522C5D]'}
+              ${isSelected ? 'ring-4 ring-[#E38681] ring-opacity-90 ring-inset' : ''}
+              ${isLastMoveSquare ? 'bg-gradient-to-br from-[#E38681]/40 to-[#E38681]/20' : ''}
               ${isValidMoveTarget ? 'cursor-pointer' : ''}
-              transition-all duration-200
+              transition-all duration-200 hover:brightness-105
+              border border-[#29104A]/10
             `}
             onClick={() => handleSquareClick(actualRow, actualCol)}
             onDrop={(e) => handleDrop(actualRow, actualCol, e)}
@@ -158,10 +159,10 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
             {isValidMoveTarget && (
               <div className={`
                 absolute inset-0 flex items-center justify-center
-                ${piece ? 'border-4 border-[#E38681] border-opacity-70 rounded-full' : ''}
+                ${piece ? 'border-4 border-[#E38681] border-opacity-80 rounded-full m-1' : ''}
               `}>
                 {!piece && (
-                  <div className="w-6 h-6 bg-[#E38681] rounded-full opacity-70" />
+                  <div className="w-5 h-5 bg-[#E38681] rounded-full opacity-80 shadow-lg" />
                 )}
               </div>
             )}
@@ -180,12 +181,18 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
 
             {/* Coordinate labels */}
             {col === 0 && (
-              <div className="absolute left-1 top-1 text-xs font-semibold text-[#29104A] opacity-60">
+              <div className={`
+                absolute left-1 top-1 text-xs font-bold opacity-60 select-none
+                ${isLight ? 'text-[#522C5D]' : 'text-[#FFE3D8]'}
+              `}>
                 {isFlipped ? row + 1 : 8 - row}
               </div>
             )}
             {row === 7 && (
-              <div className="absolute right-1 bottom-1 text-xs font-semibold text-[#29104A] opacity-60">
+              <div className={`
+                absolute right-1 bottom-1 text-xs font-bold opacity-60 select-none
+                ${isLight ? 'text-[#522C5D]' : 'text-[#FFE3D8]'}
+              `}>
                 {String.fromCharCode(97 + (isFlipped ? 7 - col : col))}
               </div>
             )}
@@ -213,7 +220,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
   return (
     <div className="relative">
       {/* Board container */}
-      <div className="grid grid-cols-8 gap-0 border-4 border-[#29104A] rounded-lg overflow-hidden shadow-2xl bg-[#29104A]">
+      <div className="grid grid-cols-8 gap-0 border-4 border-[#29104A] rounded-xl overflow-hidden shadow-2xl bg-[#29104A] ring-2 ring-[#522C5D]/30">
         {renderSquares}
       </div>
 

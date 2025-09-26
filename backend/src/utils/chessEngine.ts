@@ -365,7 +365,7 @@ export class ChessEngine {
   /**
    * Execute a move and return the new game state
    */
-  makeMove(gameState: GameState, from: Position, to: Position): GameState {
+  makeMove(gameState: GameState, from: Position, to: Position, promotionPiece?: PieceType): GameState {
     if (!this.isValidMove(gameState, from, to)) {
       throw new Error('Invalid move');
     }
@@ -373,6 +373,12 @@ export class ChessEngine {
     const newBoard = gameState.board.map(row => [...row]);
     const piece = newBoard[from.row][from.col]!;
     const capturedPiece = newBoard[to.row][to.col];
+
+    // Check if this is a pawn promotion move
+    const isPromotion = piece.type === 'pawn' && (to.row === 0 || to.row === 7);
+    if (isPromotion && !promotionPiece) {
+      throw new Error('Promotion piece must be specified for pawn promotion');
+    }
 
     // Create the move object
     const move: Move = {
@@ -392,7 +398,7 @@ export class ChessEngine {
     newBoard[from.row][from.col] = null;
 
     // Handle special moves
-    this.handleSpecialMoves(newBoard, move, gameState);
+    this.handleSpecialMoves(newBoard, move, gameState, promotionPiece);
 
     const newGameState: GameState = {
       ...gameState,
@@ -419,7 +425,7 @@ export class ChessEngine {
   /**
    * Handle special moves like castling, en passant, and pawn promotion
    */
-  private handleSpecialMoves(board: (ChessPiece | null)[][], move: Move, gameState: GameState): void {
+  private handleSpecialMoves(board: (ChessPiece | null)[][], move: Move, gameState: GameState, promotionPiece?: PieceType): void {
     const { piece, from, to } = move;
 
     // Castling
@@ -449,10 +455,11 @@ export class ChessEngine {
       board[capturedPawnRow][to.col] = null;
     }
 
-    // Pawn promotion (automatically to queen for now)
+    // Pawn promotion
     if (piece.type === 'pawn' && (to.row === 0 || to.row === 7)) {
-      piece.type = 'queen';
-      move.promotionPiece = 'queen';
+      const newPieceType = promotionPiece || 'queen'; // Default to queen if not specified
+      piece.type = newPieceType;
+      move.promotionPiece = newPieceType;
     }
   }
 
@@ -537,6 +544,16 @@ export class ChessEngine {
 
     const opponentColor = color === 'white' ? 'black' : 'white';
     return this.isPositionUnderAttack(gameState, king.position, opponentColor);
+  }
+
+  /**
+   * Check if a move would result in pawn promotion
+   */
+  isPawnPromotion(gameState: GameState, from: Position, to: Position): boolean {
+    const piece = gameState.board[from.row][from.col];
+    if (!piece || piece.type !== 'pawn') return false;
+    
+    return to.row === 0 || to.row === 7;
   }
 
   /**
