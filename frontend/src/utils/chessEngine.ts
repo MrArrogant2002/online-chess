@@ -88,31 +88,51 @@ export class ChessEngine {
     const targetPiece = gameState.board[to.row][to.col];
     if (targetPiece && targetPiece.color === piece.color) return false;
 
-    // Get valid moves for this piece
-    const validMoves = this.getValidMovesForPiece(gameState, piece);
-    return validMoves.some(move => move.row === to.row && move.col === to.col);
+    // Get valid moves for this piece (without check validation to avoid infinite recursion)
+    const validMoves = this.getValidMovesForPiece(gameState, piece, false);
+    const isValidMove = validMoves.some(move => move.row === to.row && move.col === to.col);
+    
+    if (!isValidMove) return false;
+
+    // Now check if this move would leave the king in check
+    return !this.wouldMoveCauseCheck(gameState, from, to);
   }
 
   /**
    * Get all valid moves for a specific piece
    */
-  getValidMovesForPiece(gameState: GameState, piece: ChessPiece): Position[] {
+  getValidMovesForPiece(gameState: GameState, piece: ChessPiece, skipCheckValidation: boolean = true): Position[] {
+    let moves: Position[] = [];
+    
     switch (piece.type) {
       case 'pawn':
-        return this.getPawnMoves(gameState, piece);
+        moves = this.getPawnMoves(gameState, piece);
+        break;
       case 'rook':
-        return this.getRookMoves(gameState, piece);
+        moves = this.getRookMoves(gameState, piece);
+        break;
       case 'knight':
-        return this.getKnightMoves(gameState, piece);
+        moves = this.getKnightMoves(gameState, piece);
+        break;
       case 'bishop':
-        return this.getBishopMoves(gameState, piece);
+        moves = this.getBishopMoves(gameState, piece);
+        break;
       case 'queen':
-        return this.getQueenMoves(gameState, piece);
+        moves = this.getQueenMoves(gameState, piece);
+        break;
       case 'king':
-        return this.getKingMoves(gameState, piece);
+        moves = this.getKingMoves(gameState, piece);
+        break;
       default:
         return [];
     }
+
+    // Filter out moves that would put own king in check (unless explicitly skipped)
+    if (!skipCheckValidation) {
+      moves = moves.filter(to => !this.wouldMoveCauseCheck(gameState, piece.position, to));
+    }
+
+    return moves;
   }
 
   /**
@@ -283,7 +303,9 @@ export class ChessEngine {
     ) {
       if (
         this.isPositionEmpty(gameState.board, { row, col: col + 1 }) &&
-        this.isPositionEmpty(gameState.board, { row, col: col + 2 })
+        this.isPositionEmpty(gameState.board, { row, col: col + 2 }) &&
+        !this.isPositionUnderAttack(gameState, { row, col: col + 1 }, king.color === 'white' ? 'black' : 'white') &&
+        !this.isPositionUnderAttack(gameState, { row, col: col + 2 }, king.color === 'white' ? 'black' : 'white')
       ) {
         moves.push({ row, col: col + 2 });
       }
@@ -297,7 +319,9 @@ export class ChessEngine {
       if (
         this.isPositionEmpty(gameState.board, { row, col: col - 1 }) &&
         this.isPositionEmpty(gameState.board, { row, col: col - 2 }) &&
-        this.isPositionEmpty(gameState.board, { row, col: col - 3 })
+        this.isPositionEmpty(gameState.board, { row, col: col - 3 }) &&
+        !this.isPositionUnderAttack(gameState, { row, col: col - 1 }, king.color === 'white' ? 'black' : 'white') &&
+        !this.isPositionUnderAttack(gameState, { row, col: col - 2 }, king.color === 'white' ? 'black' : 'white')
       ) {
         moves.push({ row, col: col - 2 });
       }
@@ -516,6 +540,48 @@ export class ChessEngine {
   }
 
   /**
+   * Check if a move would cause the moving player's king to be in check
+   */
+  private wouldMoveCauseCheck(gameState: GameState, from: Position, to: Position): boolean {
+    // Simulate the move
+    const testBoard = gameState.board.map(row => [...row]);
+    const piece = testBoard[from.row][from.col];
+    if (!piece) return false;
+
+    // Make the move temporarily
+    const capturedPiece = testBoard[to.row][to.col];
+    testBoard[to.row][to.col] = piece;
+    testBoard[from.row][from.col] = null;
+
+    // Find the king of the moving player
+    const king = this.findKing(testBoard, piece.color);
+    if (!king) return true; // If no king found, consider it check (shouldn't happen)
+
+    // Check if king would be under attack after the move
+    const kingPosition = piece.type === 'king' ? to : king.position;
+    const opponentColor = piece.color === 'white' ? 'black' : 'white';
+    
+    // Check if any opponent piece can attack the king position
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const opponentPiece = testBoard[row][col];
+        if (opponentPiece && opponentPiece.color === opponentColor) {
+          const attackMoves = this.getValidMovesForPiece({
+            ...gameState,
+            board: testBoard
+          }, opponentPiece, true); // Skip check validation to avoid recursion
+          
+          if (attackMoves.some(move => move.row === kingPosition.row && move.col === kingPosition.col)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * Check if a player has any valid moves
    */
   private hasValidMoves(gameState: GameState, color: PieceColor): boolean {
@@ -523,7 +589,7 @@ export class ChessEngine {
       for (let col = 0; col < 8; col++) {
         const piece = gameState.board[row][col];
         if (piece && piece.color === color) {
-          const validMoves = this.getValidMovesForPiece(gameState, piece);
+          const validMoves = this.getValidMovesForPiece(gameState, piece, false); // Include check validation
           if (validMoves.length > 0) {
             return true;
           }
@@ -556,7 +622,7 @@ export class ChessEngine {
       for (let col = 0; col < 8; col++) {
         const piece = gameState.board[row][col];
         if (piece && piece.color === attackerColor) {
-          const validMoves = this.getValidMovesForPiece(gameState, piece);
+          const validMoves = this.getValidMovesForPiece(gameState, piece, true); // Skip check validation to avoid recursion
           if (validMoves.some(move => move.row === position.row && move.col === position.col)) {
             return true;
           }
