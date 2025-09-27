@@ -10,7 +10,6 @@ import { ChessBoard } from '@/components/chess/ChessBoard';
 import { chessEngine } from '@/utils/chessEngine';
 import { GameState, Position, PieceType } from '@/types/chess';
 import { Button } from '@/components/ui/Button';
-import { ConnectionTester } from '@/components/debug/ConnectionTester';
 
 export default function DemoPage() {
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -104,9 +103,6 @@ export default function DemoPage() {
             <p>• All chess rules implemented</p>
           </div>
         </div>
-
-        {/* Connection Tester */}
-        <ConnectionTester />
       </div>
     </div>
   );

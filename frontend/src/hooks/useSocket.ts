@@ -40,11 +40,6 @@ export const useSocket = (): UseSocketReturn => {
   useEffect(() => {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
     console.log('🔌 Attempting to connect to:', backendUrl);
-    console.log('🌍 Environment:', process.env.NODE_ENV);
-    console.log('🔧 All env vars:', {
-      NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
-      NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL
-    });
 
     // Set a connection timeout
     const connectionTimeout = setTimeout(() => {
@@ -70,21 +65,13 @@ export const useSocket = (): UseSocketReturn => {
     // Connection events
     socketInstance.on('connect', () => {
       console.log('✅ Connected to server via HTTP polling (reliable connection)');
-      console.log('🔗 Socket ID:', socketInstance.id);
       clearTimeout(connectionTimeout);
       setIsConnected(true);
       setError(null);
     });
 
-    socketInstance.on('connect_error', (error: any) => {
-      console.error('❌ Connection Error:', error);
-      console.error('📍 Backend URL being used:', backendUrl);
-      setError(`Connection failed: ${error.message || 'Unknown error'}`);
-      clearTimeout(connectionTimeout);
-    });
-
     socketInstance.on('disconnect', (reason: string) => {
-      console.log('🔌 Disconnected from server:', reason);
+      console.log('Disconnected from server:', reason);
       setIsConnected(false);
       if (reason === 'io server disconnect') {
         // the disconnection was initiated by the server, you need to reconnect manually
