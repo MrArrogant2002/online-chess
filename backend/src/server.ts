@@ -3,9 +3,9 @@
  * Express + Socket.IO server for multiplayer chess game
  */
 
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { createServer } from 'http';
-import { Server as SocketIOServer } from 'socket.io';
+import { Server as SocketIOServer, Socket } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GameController } from './controllers/GameController';
@@ -44,7 +44,7 @@ const roomController = new RoomController();
 gameController.setRoomController(roomController);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
@@ -53,13 +53,13 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
-app.get('/api/rooms/active', (req, res) => {
+app.get('/api/rooms/active', (req: Request, res: Response) => {
   const activeRooms = roomController.getActiveRooms();
   res.json({ rooms: activeRooms });
 });
 
 // Socket.IO connection handling
-io.on('connection', (socket) => {
+io.on('connection', (socket: Socket) => {
   console.log(`Player connected: ${socket.id}`);
 
   // Room management events

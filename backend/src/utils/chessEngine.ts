@@ -3,7 +3,7 @@
  * Handles all chess-related logic including piece movement, validation, check/checkmate detection
  */
 
-import { ChessPiece, GameState, Move, Position, PieceColor, PieceType, GameStatus, GameResult } from '@/types/chess';
+import { ChessPiece, GameState, Move, Position, PieceColor, PieceType, GameStatus, GameResult } from '../types/chess';
 import { v4 as uuidv4 } from 'uuid';
 
 export class ChessEngine {
