@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { ChessPiece as ChessPieceType } from '@/types/chess';
+import { PieceSvg } from './pieces/PieceSvg';
 
 interface ChessPieceProps {
   piece: ChessPieceType;
@@ -17,22 +18,6 @@ interface ChessPieceProps {
   onDragEnd: (event: React.DragEvent) => void;
 }
 
-// Unicode chess piece symbols
-const PIECE_SYMBOLS: Record<string, string> = {
-  'white-king': '♔',
-  'white-queen': '♕',
-  'white-rook': '♖',
-  'white-bishop': '♗',
-  'white-knight': '♘',
-  'white-pawn': '♙',
-  'black-king': '♚',
-  'black-queen': '♛',
-  'black-rook': '♜',
-  'black-bishop': '♝',
-  'black-knight': '♞',
-  'black-pawn': '♟',
-};
-
 export const ChessPiece: React.FC<ChessPieceProps> = ({
   piece,
   isSelected,
@@ -41,9 +26,6 @@ export const ChessPiece: React.FC<ChessPieceProps> = ({
   onDragStart,
   onDragEnd,
 }) => {
-  const pieceKey = `${piece.color}-${piece.type}`;
-  const symbol = PIECE_SYMBOLS[pieceKey];
-
   return (
     <div
       className={`
@@ -51,26 +33,32 @@ export const ChessPiece: React.FC<ChessPieceProps> = ({
         cursor-pointer select-none transition-all duration-200
         ${isSelected ? 'z-20 scale-110' : 'z-10'}
         ${isDragging ? 'opacity-50' : 'opacity-100'}
-        hover:scale-105 active:scale-95
+        hover:scale-105 active:scale-95 p-1
       `}
       onClick={() => onPieceClick(piece)}
       onDragStart={(e) => onDragStart(piece, e)}
       onDragEnd={onDragEnd}
       draggable
     >
-      <span
+      <div
         className={`
-          text-4xl md:text-5xl lg:text-6xl font-bold
+          w-full h-full transition-all duration-200
+          ${isSelected ? 'drop-shadow-[0_0_12px_rgba(227,134,129,0.8)]' : ''}
           ${piece.color === 'white' 
-            ? 'text-[#FFE3D8] drop-shadow-[2px_2px_4px_rgba(0,0,0,0.6)]' 
-            : 'text-[#150016] drop-shadow-[2px_2px_4px_rgba(255,255,255,0.3)]'
+            ? 'drop-shadow-[2px_2px_4px_rgba(0,0,0,0.6)]' 
+            : 'drop-shadow-[2px_2px_4px_rgba(255,255,255,0.3)]'
           }
-          ${isSelected ? 'text-[#E38681]' : ''}
-          transition-all duration-200
         `}
       >
-        {symbol}
-      </span>
+        <PieceSvg 
+          type={piece.type} 
+          color={piece.color}
+          className={`
+            transition-all duration-200
+            ${isSelected ? 'brightness-110' : ''}
+          `}
+        />
+      </div>
     </div>
   );
 };
