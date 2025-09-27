@@ -41,12 +41,17 @@ app.use(express.json());
 // Socket.IO server setup
 const io = new SocketIOServer(httpServer, {
   cors: corsOptions,
-  transports: ['websocket', 'polling'],
+  transports: ['polling', 'websocket'], // Try polling first for better compatibility
   allowEIO3: true,
-  pingTimeout: 60000,
-  pingInterval: 25000,
-  connectTimeout: 45000,
-  maxHttpBufferSize: 1e6
+  pingTimeout: 30000,
+  pingInterval: 10000,
+  connectTimeout: 20000,
+  maxHttpBufferSize: 1e6,
+  allowRequest: (req, callback) => {
+    // Log connection attempts for debugging
+    console.log('Socket.IO connection attempt from:', req.headers.origin);
+    callback(null, true);
+  }
 });
 
 // Controllers
@@ -62,6 +67,16 @@ app.get('/health', (req: Request, res: Response) => {
     status: 'healthy', 
     timestamp: new Date().toISOString(),
     service: 'chess-royale-backend'
+  });
+});
+
+// CORS debug endpoint
+app.get('/cors-test', (req: Request, res: Response) => {
+  res.json({
+    message: 'CORS is working!',
+    allowedOrigins: allowedOrigins,
+    requestOrigin: req.headers.origin,
+    timestamp: new Date().toISOString()
   });
 });
 
