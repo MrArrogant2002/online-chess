@@ -8,7 +8,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { GameResult, GameState, Room } from '@/types/chess';
+import { GameState, Room } from '@/types/chess';
 
 interface ResultScreenProps {
   room: Room;

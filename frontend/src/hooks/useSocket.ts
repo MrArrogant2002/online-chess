@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from "socket.io-client";
-import { Room, GameState, Move, Player, SocketEvents } from '@/types/chess';
+import { Room, GameState, Move, Player } from '@/types/chess';
 
 interface UseSocketReturn {
   socket: Socket | null;
@@ -163,13 +163,27 @@ export const useSocket = (): UseSocketReturn => {
     });
 
     socketInstance.on('move-made', (move: Move, newGameState: GameState) => {
-      console.log('Move made:', move);
+      console.log('✅ Move made by server:', move);
+      if (move.promotionPiece) {
+        console.log('👑 Promotion move detected:', {
+          from: move.from,
+          to: move.to,
+          originalPiece: move.piece.type,
+          promotionPiece: move.promotionPiece,
+          newBoardPiece: newGameState.board[move.to.row][move.to.col]?.type
+        });
+      }
       setGameState(newGameState);
       setCurrentRoom(prev => prev ? { ...prev, gameState: newGameState } : prev);
     });
 
     socketInstance.on('invalid-move', (errorMessage: string) => {
-      console.error('Invalid move:', errorMessage);
+      console.error('❌ Invalid move received from server:', errorMessage);
+      console.log('📊 Current error details:', {
+        timestamp: new Date().toISOString(),
+        errorMessage,
+        isPromotionError: errorMessage.includes('promotion')
+      });
       setError(errorMessage);
       // Clear error after 3 seconds
       setTimeout(() => setError(null), 3000);
@@ -221,6 +235,17 @@ export const useSocket = (): UseSocketReturn => {
   }, []);
 
   const makeMove = useCallback((move: Move) => {
+    console.log('🚀 useSocket makeMove called with:', move);
+    console.log('📋 Move details:', {
+      from: move.from,
+      to: move.to,
+      pieceType: move.piece.type,
+      hasPromotionPiece: !!move.promotionPiece,
+      promotionPiece: move.promotionPiece,
+      isPawnMove: move.piece.type === 'pawn',
+      isPromotionMove: move.piece.type === 'pawn' && (move.to.row === 0 || move.to.row === 7)
+    });
+    
     if (socketRef.current) {
       socketRef.current.emit('make-move', move);
     }

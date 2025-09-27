@@ -30,9 +30,9 @@ export const ChessPiece: React.FC<ChessPieceProps> = ({
     <div
       className={`
         absolute inset-0 flex items-center justify-center
-        cursor-pointer select-none transition-all duration-200
+        cursor-pointer select-none transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
         ${isSelected ? 'z-20 scale-110' : 'z-10'}
-        ${isDragging ? 'opacity-50' : 'opacity-100'}
+        ${isDragging ? 'opacity-60' : 'opacity-100'}
         hover:scale-105 active:scale-95 p-1
       `}
       onClick={() => onPieceClick(piece)}
@@ -42,20 +42,22 @@ export const ChessPiece: React.FC<ChessPieceProps> = ({
     >
       <div
         className={`
-          w-full h-full transition-all duration-200
-          ${isSelected ? 'drop-shadow-[0_0_12px_rgba(227,134,129,0.8)]' : ''}
+          w-full h-full transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+          ${isSelected ? 'drop-shadow-[0_0_16px_rgba(139,92,246,0.8)]' : ''}
           ${piece.color === 'white' 
-            ? 'drop-shadow-[2px_2px_4px_rgba(0,0,0,0.6)]' 
-            : 'drop-shadow-[2px_2px_4px_rgba(255,255,255,0.3)]'
+            ? 'drop-shadow-[2px_2px_6px_rgba(0,0,0,0.7)]' 
+            : 'drop-shadow-[2px_2px_6px_rgba(0,0,0,0.8)]'
           }
+          ${isSelected ? 'animate-pulse' : ''}
         `}
       >
         <PieceSvg 
           type={piece.type} 
           color={piece.color}
           className={`
-            transition-all duration-200
-            ${isSelected ? 'brightness-110' : ''}
+            transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+            ${isSelected ? 'brightness-110 contrast-110' : ''}
+            hover:brightness-105
           `}
         />
       </div>

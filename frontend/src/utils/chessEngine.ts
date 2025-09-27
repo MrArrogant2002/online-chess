@@ -3,7 +3,7 @@
  * Handles all chess-related logic including piece movement, validation, check/checkmate detection
  */
 
-import { ChessPiece, GameState, Move, Position, PieceColor, PieceType, GameStatus, GameResult } from '@/types/chess';
+import { ChessPiece, GameState, Move, Position, PieceColor, PieceType } from '@/types/chess';
 import { v4 as uuidv4 } from 'uuid';
 
 export class ChessEngine {
@@ -88,8 +88,8 @@ export class ChessEngine {
     const targetPiece = gameState.board[to.row][to.col];
     if (targetPiece && targetPiece.color === piece.color) return false;
 
-    // Get valid moves for this piece (without check validation to avoid infinite recursion)
-    const validMoves = this.getValidMovesForPiece(gameState, piece, false);
+    // Get valid moves for this piece (with check validation skipped to avoid infinite recursion)
+    const validMoves = this.getValidMovesForPiece(gameState, piece, true);
     const isValidMove = validMoves.some(move => move.row === to.row && move.col === to.col);
     
     if (!isValidMove) return false;
@@ -187,7 +187,7 @@ export class ChessEngine {
    */
   private getRookMoves(gameState: GameState, piece: ChessPiece): Position[] {
     const moves: Position[] = [];
-    const { row, col } = piece.position;
+    const { row: _row, col: _col } = piece.position;
 
     // Horizontal and vertical directions
     const directions = [
@@ -208,7 +208,7 @@ export class ChessEngine {
    * Get valid moves for a knight
    */
   private getKnightMoves(gameState: GameState, piece: ChessPiece): Position[] {
-    const moves: Position[] = [];
+    const _moves: Position[] = [];
     const { row, col } = piece.position;
 
     const knightMoves = [
@@ -340,6 +340,7 @@ export class ChessEngine {
     color: PieceColor
   ): Position[] {
     const moves: Position[] = [];
+    // eslint-disable-next-line prefer-const
     let currentPos = {
       row: start.row + direction.row,
       col: start.col + direction.col,
@@ -377,10 +378,17 @@ export class ChessEngine {
     // Check if this is a pawn promotion move
     const isPromotion = piece.type === 'pawn' && (to.row === 0 || to.row === 7);
     if (isPromotion && !promotionPiece) {
-      throw new Error('Promotion piece must be specified for pawn promotion');
+      console.warn('⚠️ Frontend: Pawn promotion without piece specified, defaulting to queen');
+      promotionPiece = 'queen'; // Temporary fallback for debugging
     }
 
-    // Create the move object
+    // Handle pawn promotion BEFORE creating move object and updating board
+    if (isPromotion) {
+      const newPieceType = promotionPiece || 'queen';
+      piece.type = newPieceType;
+    }
+
+    // Create the move object (now with correct piece type if promoted)
     const move: Move = {
       from,
       to,
@@ -388,6 +396,11 @@ export class ChessEngine {
       capturedPiece: capturedPiece || undefined,
       timestamp: Date.now(),
     };
+
+    // Set promotion piece flag if it was a promotion
+    if (isPromotion) {
+      move.promotionPiece = promotionPiece || 'queen';
+    }
 
     // Update piece position
     piece.position = to;
@@ -397,7 +410,7 @@ export class ChessEngine {
     newBoard[to.row][to.col] = piece;
     newBoard[from.row][from.col] = null;
 
-    // Handle special moves
+    // Handle other special moves (castling, en passant)
     this.handleSpecialMoves(newBoard, move, gameState, promotionPiece);
 
     const newGameState: GameState = {
@@ -425,7 +438,7 @@ export class ChessEngine {
   /**
    * Handle special moves like castling, en passant, and pawn promotion
    */
-  private handleSpecialMoves(board: (ChessPiece | null)[][], move: Move, gameState: GameState, promotionPiece?: PieceType): void {
+  private handleSpecialMoves(board: (ChessPiece | null)[][], move: Move, gameState: GameState, _promotionPiece?: PieceType): void {
     const { piece, from, to } = move;
 
     // Castling
@@ -455,12 +468,7 @@ export class ChessEngine {
       board[capturedPawnRow][to.col] = null;
     }
 
-    // Pawn promotion
-    if (piece.type === 'pawn' && (to.row === 0 || to.row === 7)) {
-      const newPieceType = promotionPiece || 'queen'; // Default to queen if not specified
-      piece.type = newPieceType;
-      move.promotionPiece = newPieceType;
-    }
+    // Pawn promotion is now handled in makeMove before this function is called
   }
 
   /**
@@ -566,7 +574,7 @@ export class ChessEngine {
     if (!piece) return false;
 
     // Make the move temporarily
-    const capturedPiece = testBoard[to.row][to.col];
+    const _capturedPiece = testBoard[to.row][to.col];
     testBoard[to.row][to.col] = piece;
     testBoard[from.row][from.col] = null;
 

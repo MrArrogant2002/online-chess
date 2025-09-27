@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { ChessBoard } from '@/components/chess/ChessBoard';
 import { chessEngine } from '@/utils/chessEngine';
-import { GameState, Position } from '@/types/chess';
+import { GameState, Position, PieceType } from '@/types/chess';
 import { Button } from '@/components/ui/Button';
 
 export default function DemoPage() {
@@ -20,9 +20,9 @@ export default function DemoPage() {
     };
   });
 
-  const handleMove = (from: Position, to: Position) => {
+  const handleMove = (from: Position, to: Position, promotionPiece?: PieceType) => {
     try {
-      const newGameState = chessEngine.makeMove(gameState, from, to);
+      const newGameState = chessEngine.makeMove(gameState, from, to, promotionPiece);
       setGameState(newGameState);
     } catch (error) {
       console.error('Invalid move:', error);

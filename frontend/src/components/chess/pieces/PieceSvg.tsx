@@ -108,7 +108,7 @@ const PawnSvg: React.FC<{ color: PieceColor; className?: string }> = ({ color, c
   </svg>
 );
 
-export const PieceSvg: React.FC<PieceSvgProps> = ({ type, color, size = 45, className = '' }) => {
+export const PieceSvg: React.FC<PieceSvgProps> = ({ type, color, size: _size = 45, className = '' }) => {
   const svgClassName = `w-full h-full ${className}`;
 
   switch (type) {

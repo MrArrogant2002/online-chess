@@ -9,7 +9,7 @@ import React, { useState, useCallback } from 'react';
 import { ChessBoard } from './ChessBoard';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { GameState, Room, Player, Position, Move } from '@/types/chess';
+import { GameState, Room, Position, Move } from '@/types/chess';
 
 interface GameScreenProps {
   room: Room;
@@ -43,7 +43,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
   // Format move for display
   const formatMove = (move: Move, index: number): string => {
-    const fromSquare = `${String.fromCharCode(97 + move.from.col)}${8 - move.from.row}`;
+    const _fromSquare = `${String.fromCharCode(97 + move.from.col)}${8 - move.from.row}`;
     const toSquare = `${String.fromCharCode(97 + move.to.col)}${8 - move.to.row}`;
     const piece = move.piece.type === 'knight' ? 'N' : move.piece.type.charAt(0).toUpperCase();
     const capture = move.capturedPiece ? 'x' : '';
@@ -79,14 +79,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     
     return { 
       message: isPlayerTurn ? 'Your turn' : 'Opponent\'s turn', 
-      color: 'text-[#FFE3D8]' 
+      color: 'text-slate-200' 
     };
   };
 
   const statusInfo = getGameStatusMessage();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#150016] via-[#29104A] to-[#522C5D] p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Game Board - Takes up most space */}
@@ -106,14 +106,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             {/* Game Status */}
             <Card>
               <div className="text-center">
-                <h2 className="text-lg font-semibold text-[#FFE3D8] mb-2">
+                <h2 className="text-lg font-semibold text-white mb-2">
                   Game Status
                 </h2>
                 <p className={`font-medium ${statusInfo.color}`}>
                   {statusInfo.message}
                 </p>
                 {gameState.gameStatus === 'playing' && (
-                  <div className="mt-2 text-sm text-[#845162]">
+                  <div className="mt-2 text-sm text-slate-400">
                     Move #{gameState.moves.length + 1}
                   </div>
                 )}
@@ -122,23 +122,23 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
             {/* Players */}
             <Card>
-              <h3 className="font-semibold text-[#FFE3D8] mb-3">Players</h3>
-              <div className="space-y-2">
+              <h3 className="font-semibold text-white mb-3">Players</h3>
+              <div className="space-y-3">
                 {/* Current Player */}
                 {currentPlayer && (
                   <div className={`
-                    p-3 rounded-lg border
+                    p-3 rounded-lg border transition-all duration-300
                     ${isPlayerTurn 
-                      ? 'border-[#E38681] bg-[#E38681]/10' 
-                      : 'border-[#522C5D] bg-[#522C5D]/20'
+                      ? 'border-purple-500/80 bg-purple-500/10 shadow-lg shadow-purple-500/20' 
+                      : 'border-slate-600/50 bg-slate-600/10'
                     }
                   `}>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-[#FFE3D8]">
+                        <p className="font-medium text-white">
                           {currentPlayer.name} (You)
                         </p>
-                        <p className="text-sm text-[#845162] capitalize">
+                        <p className="text-sm text-slate-300 capitalize">
                           {currentPlayer.color}
                         </p>
                       </div>
@@ -152,18 +152,18 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 {/* Opponent */}
                 {opponent && (
                   <div className={`
-                    p-3 rounded-lg border
+                    p-3 rounded-lg border transition-all duration-300
                     ${!isPlayerTurn 
-                      ? 'border-[#E38681] bg-[#E38681]/10' 
-                      : 'border-[#522C5D] bg-[#522C5D]/20'
+                      ? 'border-purple-500/80 bg-purple-500/10 shadow-lg shadow-purple-500/20' 
+                      : 'border-slate-600/50 bg-slate-600/10'
                     }
                   `}>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-[#FFE3D8]">
+                        <p className="font-medium text-white">
                           {opponent.name}
                         </p>
-                        <p className="text-sm text-[#845162] capitalize">
+                        <p className="text-sm text-slate-300 capitalize">
                           {opponent.color}
                         </p>
                       </div>
@@ -179,7 +179,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             {/* Move History */}
             <Card>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-[#FFE3D8]">Move History</h3>
+                <h3 className="font-semibold text-white">Move History</h3>
                 <Button
                   size="sm"
                   variant="outline"
@@ -190,9 +190,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               </div>
               
               {showMoveHistory && (
-                <div className="max-h-48 overflow-y-auto">
+                <div className="max-h-48 overflow-y-auto custom-scrollbar">
                   {gameState.moves.length === 0 ? (
-                    <p className="text-[#845162] text-sm text-center py-4">
+                    <p className="text-slate-400 text-sm text-center py-4">
                       No moves yet
                     </p>
                   ) : (
@@ -200,7 +200,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                       {gameState.moves.map((move, index) => (
                         <div 
                           key={index}
-                          className="text-sm font-mono text-[#FFE3D8] py-1 px-2 rounded hover:bg-[#522C5D]/30"
+                          className="text-sm font-mono text-slate-200 py-1 px-2 rounded hover:bg-slate-600/30 transition-colors duration-200"
                         >
                           {formatMove(move, index)}
                         </div>
@@ -213,7 +213,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
             {/* Game Controls */}
             <Card>
-              <h3 className="font-semibold text-[#FFE3D8] mb-3">Game Controls</h3>
+              <h3 className="font-semibold text-white mb-3">Game Controls</h3>
               <div className="space-y-3">
                 {gameState.gameStatus === 'finished' && (
                   <Button
@@ -238,8 +238,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             {/* Room Info */}
             <Card padding="sm">
               <div className="text-center">
-                <p className="text-sm text-[#845162]">
-                  Room: <span className="font-mono font-bold text-[#E38681]">{room.code}</span>
+                <p className="text-sm text-slate-400">
+                  Room: <span className="font-mono font-bold text-purple-400">{room.code}</span>
                 </p>
               </div>
             </Card>

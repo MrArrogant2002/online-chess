@@ -27,13 +27,13 @@ export const PawnPromotionDialog: React.FC<PawnPromotionDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#29104A] border-2 border-[#522C5D] rounded-xl p-6 max-w-md w-full shadow-2xl">
+    <div className="fixed inset-0 glass-strong flex items-center justify-center z-50 p-4 animate-fade-in">
+      <div className="card-modern max-w-md w-full shadow-2xl animate-scale-in">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-[#FFE3D8] mb-2">
+          <h2 className="text-2xl font-bold text-white mb-2">
             Pawn Promotion
           </h2>
-          <p className="text-[#845162]">
+          <p className="text-slate-300">
             Choose which piece to promote your pawn to:
           </p>
         </div>
@@ -44,21 +44,22 @@ export const PawnPromotionDialog: React.FC<PawnPromotionDialogProps> = ({
               key={pieceType}
               onClick={() => onSelect(pieceType)}
               className="
-                aspect-square bg-[#522C5D] hover:bg-[#845162] 
-                border-2 border-[#845162] hover:border-[#E38681]
-                rounded-lg p-3 transition-all duration-200
-                hover:scale-105 active:scale-95
-                focus:outline-none focus:ring-2 focus:ring-[#E38681]
+                aspect-square glass hover:glass-strong
+                border border-slate-600/50 hover:border-purple-500/80
+                rounded-lg p-3 transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+                hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/20
+                focus:outline-none focus:ring-2 focus:ring-purple-500
+                group
               "
             >
               <div className="w-full h-full">
                 <PieceSvg 
                   type={pieceType} 
                   color={color}
-                  className="filter drop-shadow-md"
+                  className="filter drop-shadow-lg group-hover:drop-shadow-xl transition-all duration-300"
                 />
               </div>
-              <div className="text-xs text-[#FFE3D8] mt-2 capitalize font-semibold">
+              <div className="text-xs text-slate-200 mt-2 capitalize font-semibold group-hover:text-white transition-colors duration-200">
                 {pieceType}
               </div>
             </button>
@@ -68,10 +69,12 @@ export const PawnPromotionDialog: React.FC<PawnPromotionDialogProps> = ({
         <button
           onClick={onCancel}
           className="
-            w-full py-3 bg-[#522C5D] hover:bg-[#845162]
-            border border-[#845162] hover:border-[#E38681]
-            text-[#FFE3D8] rounded-lg transition-all duration-200
-            focus:outline-none focus:ring-2 focus:ring-[#E38681]
+            w-full py-3 glass hover:glass-strong
+            border border-slate-600/50 hover:border-red-400/80
+            text-slate-200 hover:text-white rounded-lg 
+            transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+            hover:shadow-lg hover:shadow-red-400/20
+            focus:outline-none focus:ring-2 focus:ring-red-400
           "
         >
           Cancel

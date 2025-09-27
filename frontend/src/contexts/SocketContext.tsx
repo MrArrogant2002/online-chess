@@ -8,9 +8,10 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import type { Room, GameState, Move } from '@/types/chess';
+import type { Socket } from 'socket.io-client';
 
 interface SocketContextType {
-  socket: any;
+  socket: Socket | null;
   isConnected: boolean;
   currentRoom: Room | null;
   gameState: GameState | null;

@@ -19,7 +19,7 @@ export default function Home() {
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { createRoom, joinRoom, currentRoom, gameState, isConnected, error } = useSocketContext();
+  const { createRoom, joinRoom, currentRoom, isConnected, error } = useSocketContext();
 
   const handleCreateRoom = () => {
     setIsLoading(true);

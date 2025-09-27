@@ -7,14 +7,15 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { ChessPiece } from './ChessPiece';
-import { ChessPiece as ChessPieceType, Position, GameState } from '@/types/chess';
+import { PawnPromotionDialog } from './PawnPromotionDialog';
+import { ChessPiece as ChessPieceType, Position, GameState, PieceType } from '@/types/chess';
 import { chessEngine } from '@/utils/chessEngine';
 
 interface ChessBoardProps {
   gameState: GameState;
   isPlayerTurn: boolean;
   playerColor: 'white' | 'black';
-  onMove: (from: Position, to: Position) => void;
+  onMove: (from: Position, to: Position, promotionPiece?: PieceType) => void;
 }
 
 export const ChessBoard: React.FC<ChessBoardProps> = ({
@@ -26,6 +27,12 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
   const [selectedPiece, setSelectedPiece] = useState<ChessPieceType | null>(null);
   const [draggedPiece, setDraggedPiece] = useState<ChessPieceType | null>(null);
   const [validMoves, setValidMoves] = useState<Position[]>([]);
+  const [pendingPromotion, setPendingPromotion] = useState<{from: Position, to: Position} | null>(null);
+
+  // Debug pendingPromotion state changes
+  React.useEffect(() => {
+    console.log('🔄 pendingPromotion state changed:', pendingPromotion);
+  }, [pendingPromotion]);
 
   // Board orientation - flip for black player
   const isFlipped = playerColor === 'black';
@@ -62,7 +69,25 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
     );
 
     if (isValidMove) {
-      onMove(selectedPiece.position, targetPosition);
+      // Check if this is a pawn promotion move
+      const isPromotion = selectedPiece.type === 'pawn' && (targetPosition.row === 0 || targetPosition.row === 7);
+      
+      console.log('🔍 Move validation:', {
+        piece: selectedPiece.type,
+        from: selectedPiece.position,
+        to: targetPosition,
+        isPromotion
+      });
+      
+      if (isPromotion) {
+        console.log('🏰 Showing pawn promotion dialog');
+        // Show promotion dialog
+        setPendingPromotion({ from: selectedPiece.position, to: targetPosition });
+      } else {
+        // Regular move
+        onMove(selectedPiece.position, targetPosition);
+      }
+      
       setSelectedPiece(null);
       setValidMoves([]);
     }
@@ -104,7 +129,24 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
     );
 
     if (isValidMove) {
-      onMove(draggedPiece.position, targetPosition);
+      // Check if this is a pawn promotion move
+      const isPromotion = draggedPiece.type === 'pawn' && (targetPosition.row === 0 || targetPosition.row === 7);
+      
+      console.log('🔍 Drag move validation:', {
+        piece: draggedPiece.type,
+        from: draggedPiece.position,
+        to: targetPosition,
+        isPromotion
+      });
+      
+      if (isPromotion) {
+        console.log('🏰 Showing pawn promotion dialog (drag)');
+        // Show promotion dialog
+        setPendingPromotion({ from: draggedPiece.position, to: targetPosition });
+      } else {
+        // Regular move
+        onMove(draggedPiece.position, targetPosition);
+      }
     }
 
     setDraggedPiece(null);
@@ -115,6 +157,25 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
   // Handle drag over (required for drop to work)
   const handleDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
+  }, []);
+
+  // Handle pawn promotion selection
+  const handlePromotionSelect = useCallback((pieceType: PieceType) => {
+    console.log('👑 Promotion piece selected:', pieceType);
+    if (pendingPromotion) {
+      console.log('📤 Sending promotion move:', {
+        from: pendingPromotion.from,
+        to: pendingPromotion.to,
+        promotionPiece: pieceType
+      });
+      onMove(pendingPromotion.from, pendingPromotion.to, pieceType);
+      setPendingPromotion(null);
+    }
+  }, [pendingPromotion, onMove]);
+
+  // Handle pawn promotion cancel
+  const handlePromotionCancel = useCallback(() => {
+    setPendingPromotion(null);
   }, []);
 
   // Render board squares
@@ -143,13 +204,24 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
           <div
             key={`${actualRow}-${actualCol}`}
             className={`
-              relative aspect-square
-              ${isLight ? 'bg-[#FFE3D8]' : 'bg-[#522C5D]'}
-              ${isSelected ? 'ring-4 ring-[#E38681] ring-opacity-90 ring-inset' : ''}
-              ${isLastMoveSquare ? 'bg-gradient-to-br from-[#E38681]/40 to-[#E38681]/20' : ''}
-              ${isValidMoveTarget ? 'cursor-pointer' : ''}
-              transition-all duration-200 hover:brightness-105
-              border border-[#29104A]/10
+              relative aspect-square group
+              ${isLight 
+                ? 'bg-gradient-to-br from-slate-200 to-slate-300' 
+                : 'bg-gradient-to-br from-slate-700 to-slate-800'
+              }
+              ${isSelected 
+                ? 'ring-4 ring-purple-500 ring-opacity-80 ring-inset shadow-lg shadow-purple-500/50' 
+                : ''
+              }
+              ${isLastMoveSquare 
+                ? 'bg-gradient-to-br from-purple-500/30 to-indigo-500/20 shadow-inner' 
+                : ''
+              }
+              ${isValidMoveTarget ? 'cursor-pointer hover:scale-105' : ''}
+              transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+              border border-slate-600/20
+              ${isValidMoveTarget ? 'hover:shadow-lg hover:shadow-purple-500/20' : ''}
+              ${isLight ? 'hover:from-slate-100 hover:to-slate-200' : 'hover:from-slate-600 hover:to-slate-700'}
             `}
             onClick={() => handleSquareClick(actualRow, actualCol)}
             onDrop={(e) => handleDrop(actualRow, actualCol, e)}
@@ -159,10 +231,10 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
             {isValidMoveTarget && (
               <div className={`
                 absolute inset-0 flex items-center justify-center
-                ${piece ? 'border-4 border-[#E38681] border-opacity-80 rounded-full m-1' : ''}
+                ${piece ? 'border-4 border-purple-500 border-opacity-80 rounded-full m-1 shadow-lg shadow-purple-500/50' : ''}
               `}>
                 {!piece && (
-                  <div className="w-5 h-5 bg-[#E38681] rounded-full opacity-80 shadow-lg" />
+                  <div className="w-4 h-4 bg-purple-500 rounded-full opacity-80 shadow-lg shadow-purple-500/50 animate-pulse" />
                 )}
               </div>
             )}
@@ -182,16 +254,16 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
             {/* Coordinate labels */}
             {col === 0 && (
               <div className={`
-                absolute left-1 top-1 text-xs font-bold opacity-60 select-none
-                ${isLight ? 'text-[#522C5D]' : 'text-[#FFE3D8]'}
+                absolute left-1 top-1 text-xs font-bold opacity-70 select-none transition-opacity duration-200
+                ${isLight ? 'text-slate-700' : 'text-slate-300'}
               `}>
                 {isFlipped ? row + 1 : 8 - row}
               </div>
             )}
             {row === 7 && (
               <div className={`
-                absolute right-1 bottom-1 text-xs font-bold opacity-60 select-none
-                ${isLight ? 'text-[#522C5D]' : 'text-[#FFE3D8]'}
+                absolute right-1 bottom-1 text-xs font-bold opacity-70 select-none transition-opacity duration-200
+                ${isLight ? 'text-slate-700' : 'text-slate-300'}
               `}>
                 {String.fromCharCode(97 + (isFlipped ? 7 - col : col))}
               </div>
@@ -226,7 +298,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
 
       {/* Check indicator */}
       {gameState.isInCheck && (
-        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg">
+        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 glass bg-red-500/90 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg shadow-red-500/50 animate-pulse">
           CHECK!
         </div>
       )}
@@ -234,15 +306,23 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
       {/* Turn indicator */}
       <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
         <div className={`
-          px-4 py-2 rounded-lg font-bold text-sm shadow-lg
+          px-4 py-2 rounded-lg font-bold text-sm shadow-lg glass transition-all duration-300
           ${isPlayerTurn 
-            ? 'bg-[#E38681] text-[#150016]' 
-            : 'bg-[#29104A] text-[#FFE3D8]'
+            ? 'bg-purple-500/90 text-white shadow-purple-500/50' 
+            : 'bg-slate-600/90 text-slate-200 shadow-slate-600/50'
           }
         `}>
           {isPlayerTurn ? 'Your Turn' : 'Opponent\'s Turn'}
         </div>
       </div>
+
+      {/* Pawn Promotion Dialog */}
+      <PawnPromotionDialog
+        isOpen={!!pendingPromotion}
+        color={playerColor}
+        onSelect={handlePromotionSelect}
+        onCancel={handlePromotionCancel}
+      />
     </div>
   );
 };

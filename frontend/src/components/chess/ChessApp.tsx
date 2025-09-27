@@ -13,13 +13,13 @@ import { ResultScreen } from '@/components/chess/ResultScreen';
 import { Loading } from '@/components/ui/Loading';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Position } from '@/types/chess';
+import { PieceType, Position } from '@/types/chess';
 
 interface ChessAppProps {
   initialMode?: 'home' | 'room' | 'game' | 'result';
 }
 
-export const ChessApp: React.FC<ChessAppProps> = ({ initialMode = 'home' }) => {
+export const ChessApp: React.FC<ChessAppProps> = ({ initialMode: _initialMode = 'home' }) => {
   const {
     socket,
     isConnected,
@@ -68,16 +68,25 @@ export const ChessApp: React.FC<ChessAppProps> = ({ initialMode = 'home' }) => {
   const currentScreen = getCurrentScreen();
 
   // Handle move making
-  const handleMove = (from: Position, to: Position) => {
+  const handleMove = (from: Position, to: Position, promotionPiece?: PieceType) => {
     if (!gameState || !currentRoom) return;
+    
+    console.log('🎯 ChessApp handleMove called:', {
+      from,
+      to,
+      promotionPiece,
+      piece: gameState.board[from.row][from.col]?.type
+    });
     
     const move = {
       from,
       to,
       piece: gameState.board[from.row][from.col]!,
       timestamp: Date.now(),
+      ...(promotionPiece && { promotionPiece }),
     };
     
+    console.log('📨 Sending move to socket:', move);
     makeMove(move);
   };
 
