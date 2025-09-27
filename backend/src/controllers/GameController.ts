@@ -34,7 +34,7 @@ export class GameController {
    */
   async makeMove(
     playerId: string, 
-    moveData: { from: Position; to: Position }
+    moveData: { from: Position; to: Position; promotionPiece?: string }
   ): Promise<{ room: Room; move: Move; gameState: GameState } | null> {
     // Get room from room controller (we'll need to inject this)
     const room = this.getRoomByPlayerId(playerId);
@@ -62,8 +62,23 @@ export class GameController {
     }
 
     try {
+      console.log('🎯 Backend GameController makeMove called:', {
+        playerId,
+        from: moveData.from,
+        to: moveData.to,
+        promotionPiece: moveData.promotionPiece,
+        pieceType: gameState.board[moveData.from.row][moveData.from.col]?.type,
+        isPromotionMove: gameState.board[moveData.from.row][moveData.from.col]?.type === 'pawn' && 
+                        (moveData.to.row === 0 || moveData.to.row === 7)
+      });
+      
       // Make the move using the chess engine
-      const newGameState = chessEngine.makeMove(gameState, moveData.from, moveData.to);
+      const newGameState = chessEngine.makeMove(
+        gameState, 
+        moveData.from, 
+        moveData.to, 
+        moveData.promotionPiece as any
+      );
       
       // Update stored game state
       this.games.set(room.id, newGameState);
