@@ -18,8 +18,19 @@ const app = express();
 const httpServer = createServer(app);
 
 // CORS configuration
+const allowedOrigins: string[] = [
+  "https://online-chess-two.vercel.app",
+  "https://online-chess-i6bcx0txf-eswara-balu-rapolus-projects.vercel.app", // Previous deployment
+  "http://localhost:3000" // Local development
+];
+
+// Add environment URL if it exists
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  origin: allowedOrigins,
   methods: ["GET", "POST"],
   credentials: true
 };
